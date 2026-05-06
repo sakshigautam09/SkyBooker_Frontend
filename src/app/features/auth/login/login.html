@@ -1,0 +1,61 @@
+<!-- Login Page -->
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">✈️</div>
+    <h1>Welcome Back</h1>
+    <p class="subtitle">Log in to manage your bookings</p>
+
+    @if (errorMsg) {
+      <div class="alert-error">{{ errorMsg }}</div>
+    }
+
+    <form (ngSubmit)="onLogin()" #loginForm="ngForm">
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input
+          id="email"
+          type="email"
+          placeholder="you@example.com"
+          [(ngModel)]="email"
+          name="email"
+          required
+          [class.error]="loginForm.submitted && !email"
+        />
+        @if (loginForm.submitted && !email) {
+          <span class="error-msg">Email is required</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          placeholder="••••••••"
+          [(ngModel)]="password"
+          name="password"
+          required
+          [class.error]="loginForm.submitted && !password"
+        />
+        @if (loginForm.submitted && !password) {
+          <span class="error-msg">Password is required</span>
+        }
+      </div>
+
+      <div class="form-footer-row">
+        <label>
+          <input type="checkbox" /> Remember me
+        </label>
+        <a href="#">Forgot Password?</a>
+      </div>
+
+      <button class="submit-btn" type="submit" id="login-submit-btn" [disabled]="loading">
+        {{ loading ? 'Logging in...' : 'Log In' }}
+      </button>
+    </form>
+
+    <div class="auth-redirect">
+      Don't have an account? <a routerLink="/register">Sign Up</a>
+    </div>
+  </div>
+</div>

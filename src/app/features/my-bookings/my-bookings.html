@@ -1,0 +1,68 @@
+<div class="bookings-page">
+  <div class="bookings-inner">
+    <h1>My Bookings</h1>
+    <p class="subtitle">Manage your upcoming and past flights</p>
+
+    <div class="booking-tabs">
+      <button class="tab-btn" [class.active]="activeTab === 'upcoming'" (click)="activeTab = 'upcoming'">Upcoming</button>
+      <button class="tab-btn" [class.active]="activeTab === 'past'" (click)="activeTab = 'past'">Past</button>
+      <button class="tab-btn" [class.active]="activeTab === 'cancelled'" (click)="activeTab = 'cancelled'">Cancelled</button>
+    </div>
+
+    @if (loading) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading bookings...</p>
+      </div>
+    }
+
+    @if (errorMsg) {
+      <div class="error-state">{{ errorMsg }}</div>
+    }
+
+    @if (!loading && filteredBookings.length === 0 && !errorMsg) {
+      <div class="empty-state">
+        <div class="icon">🎫</div>
+        <h3>No bookings found</h3>
+        <p>You don't have any {{ activeTab }} flights yet.</p>
+        <a routerLink="/flights">Search Flights</a>
+      </div>
+    }
+
+    @for (booking of filteredBookings; track booking.id) {
+      <div class="booking-card" [id]="'booking-' + booking.id">
+        <div class="booking-card-header">
+          <div class="booking-id">PNR: <span>{{ booking.pnrCode }}</span></div>
+          <div class="status-badge" [class]="'status-badge ' + booking.statusDisplay">
+            {{ booking.status | titlecase }}
+          </div>
+        </div>
+
+        <div class="booking-route">
+          <div class="route-city">
+            <div class="code">Flight #{{ booking.flightId }}</div>
+            <div class="label">{{ booking.tripType }}</div>
+          </div>
+          <div class="route-mid">✈ ──────────────── ✈</div>
+          <div class="route-city">
+            <div class="code">₹{{ booking.totalFare | number }}</div>
+            <div class="label">Total Fare</div>
+          </div>
+        </div>
+
+        <div class="booking-card-footer">
+          <div class="booking-meta">
+            <span>📅 {{ booking.bookedAt | date:'dd MMM yyyy, hh:mm a' }}</span>
+            <span>📧 {{ booking.contactEmail }}</span>
+          </div>
+          <div class="booking-actions">
+            <button class="btn-sm outline" (click)="downloadTicket(booking)">⬇ Download Ticket</button>
+            @if (booking.statusDisplay === 'confirmed') {
+              <button class="btn-sm primary" (click)="checkIn(booking)">Check In</button>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

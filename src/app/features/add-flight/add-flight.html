@@ -1,0 +1,313 @@
+<div class="af-page">
+
+  <div class="af-hero">
+    <div class="af-hero-content">
+      <div class="af-hero-icon">✈</div>
+      <div>
+        <h1>Add New Flight</h1>
+        <p>Schedule a new flight route on the SkyBooker platform</p>
+      </div>
+    </div>
+    <div class="af-hero-meta">
+      <span class="af-step-label">Admin Panel</span>
+    </div>
+  </div>
+
+  <div class="af-body">
+
+    @if (successMsg) {
+      <div class="af-alert af-alert--success">
+        <span class="af-alert-icon">✓</span>
+        <div><strong>Flight Added!</strong><span>{{ successMsg }}</span></div>
+      </div>
+    }
+    @if (errorMsg) {
+      <div class="af-alert af-alert--error">
+        <span class="af-alert-icon">✕</span>
+        <div><strong>Error</strong><span>{{ errorMsg }}</span></div>
+      </div>
+    }
+    @if (seedingSeats) {
+      <div class="af-alert af-alert--info">
+        <span class="af-spinner-sm"></span>
+        <div><strong>Seeding Seats</strong><span>{{ seatSeedMsg }}</span></div>
+      </div>
+    }
+
+    <form (ngSubmit)="onSubmit()" #flightForm="ngForm">
+      <div class="af-grid">
+
+        <!-- LEFT COLUMN -->
+        <div class="af-col">
+
+          <!-- 01: Flight Identity -->
+          <div class="af-card">
+            <div class="af-card-header">
+              <span class="af-card-num">01</span>
+              <div><h2>Flight Identity</h2><p>Basic flight identification details</p></div>
+            </div>
+            <div class="af-card-body">
+              <div class="af-row-2">
+                <div class="af-field">
+                  <label>Flight Number <span class="req">*</span></label>
+                  <input type="text" [(ngModel)]="flight.flightNumber" name="flightNumber"
+                         placeholder="e.g. AI-202" required maxlength="10" />
+                </div>
+                <div class="af-field">
+                  <label>Airline ID <span class="req">*</span></label>
+                  <input type="number" [(ngModel)]="flight.airlineId" name="airlineId"
+                         placeholder="e.g. 1" required min="1" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 02: Route -->
+          <div class="af-card">
+            <div class="af-card-header">
+              <span class="af-card-num">02</span>
+              <div><h2>Route</h2><p>Origin and destination airports</p></div>
+            </div>
+            <div class="af-card-body">
+              <div class="af-route">
+                <div class="af-field">
+                  <label>Origin <span class="req">*</span></label>
+                  <div class="af-airport-input">
+                    <span class="af-airport-icon">🛫</span>
+                    <input type="text" [(ngModel)]="flight.originAirportCode" name="originAirportCode"
+                           placeholder="DEL" required maxlength="4" />
+                  </div>
+                </div>
+                <div class="af-route-divider">
+                  <div class="af-route-line"></div>
+                  <span class="af-route-arrow">✈</span>
+                  <div class="af-route-line"></div>
+                </div>
+                <div class="af-field">
+                  <label>Destination <span class="req">*</span></label>
+                  <div class="af-airport-input">
+                    <span class="af-airport-icon">🛬</span>
+                    <input type="text" [(ngModel)]="flight.destinationAirportCode" name="destinationAirportCode"
+                           placeholder="BOM" required maxlength="4" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 03: Schedule -->
+          <div class="af-card">
+            <div class="af-card-header">
+              <span class="af-card-num">03</span>
+              <div><h2>Schedule</h2><p>Departure and arrival times</p></div>
+            </div>
+            <div class="af-card-body">
+              <div class="af-row-2">
+                <div class="af-field">
+                  <label>Departure <span class="req">*</span></label>
+                  <input type="datetime-local" [(ngModel)]="flight.departureTime" name="departureTime" required />
+                </div>
+                <div class="af-field">
+                  <label>Arrival <span class="req">*</span></label>
+                  <input type="datetime-local" [(ngModel)]="flight.arrivalTime" name="arrivalTime" required />
+                </div>
+              </div>
+              @if (getDuration()) {
+                <div class="af-duration-badge">
+                  <span>🕐</span><span>Duration: <strong>{{ getDuration() }}</strong></span>
+                </div>
+              }
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="af-col">
+
+          <!-- 04: Aircraft & Pricing -->
+          <div class="af-card">
+            <div class="af-card-header">
+              <span class="af-card-num">04</span>
+              <div><h2>Aircraft & Pricing</h2><p>Capacity and base fare details</p></div>
+            </div>
+            <div class="af-card-body">
+              <div class="af-field">
+                <label>Aircraft Type <span class="req">*</span></label>
+                <select [(ngModel)]="flight.aircraftType" name="aircraftType" required>
+                  <option value="">— Select aircraft —</option>
+                  @for (ac of aircraftTypes; track ac) {
+                    <option [value]="ac">{{ ac }}</option>
+                  }
+                </select>
+              </div>
+              <div class="af-row-2" style="margin-top:1rem">
+                <div class="af-field">
+  <label>Total Seats</label>
+  <div class="af-input-icon-wrap">
+    <span class="af-input-prefix">💺</span>
+    @if (addSeatsEnabled) {
+      <!-- Read only display when seat config enabled — no ngModel needed -->
+      <input type="number"
+             [value]="getTotalSeatCount()"
+             readonly
+             name="totalSeatsDisplay"
+             placeholder="Auto" />
+    } @else {
+      <!-- Editable when seat config disabled -->
+      <input type="number"
+             [(ngModel)]="flight.totalSeats"
+             name="totalSeats"
+             placeholder="180"
+             min="1" max="900" />
+    }
+  </div>
+  @if (addSeatsEnabled) {
+    <span class="af-hint">Auto-calculated from seat config below</span>
+  }
+</div>
+                <div class="af-field">
+                  <label>Base Price <span class="req">*</span></label>
+                  <div class="af-input-icon-wrap">
+                    <span class="af-input-prefix">₹</span>
+                    <input type="number" [(ngModel)]="flight.basePrice" name="basePrice"
+                           placeholder="4999" required min="1" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 05: Status -->
+          <div class="af-card">
+            <div class="af-card-header">
+              <span class="af-card-num">05</span>
+              <div><h2>Initial Status</h2><p>Flight operational status</p></div>
+            </div>
+            <div class="af-card-body">
+              <div class="af-status-grid">
+                @for (s of statuses; track s) {
+                  <label class="af-status-chip" [class.selected]="flight.status === s" [attr.data-status]="s">
+                    <input type="radio" [(ngModel)]="flight.status" name="status" [value]="s" />
+                    <span class="af-status-dot"></span>
+                    {{ s.replace('_', ' ') }}
+                  </label>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- 06: Seat Configuration -->
+          <div class="af-card af-card--seats">
+            <div class="af-card-header">
+              <span class="af-card-num">06</span>
+              <div><h2>Seat Configuration</h2><p>Define cabin layout — seats auto-seeded on save</p></div>
+              <label class="af-toggle">
+                <input type="checkbox" [(ngModel)]="addSeatsEnabled" name="addSeatsEnabled" />
+                <span class="af-toggle-track"></span>
+                <span class="af-toggle-label">{{ addSeatsEnabled ? 'Enabled' : 'Disabled' }}</span>
+              </label>
+            </div>
+
+            @if (addSeatsEnabled) {
+              <div class="af-card-body">
+                <div class="af-seat-total-badge">
+                  Total seats to be created: <strong>{{ getTotalSeatCount() }}</strong>
+                </div>
+
+                @for (cfg of seatConfigs; track cfg.seatClass) {
+                  <div class="af-seat-class-block" [attr.data-class]="cfg.seatClass">
+                    <div class="af-seat-class-header">
+                      <span class="af-class-badge af-class-{{ cfg.seatClass.toLowerCase() }}">
+                        {{ cfg.seatClass }}
+                      </span>
+                      <span class="af-seat-count">
+                        {{ cfg.rows * cfg.columns.length }} seats
+                        ({{ cfg.rows }} rows × {{ cfg.columns.length }} cols)
+                      </span>
+                    </div>
+
+                    <div class="af-seat-class-body">
+                      <div class="af-seat-row-2">
+                        <div class="af-field">
+                          <label>Rows</label>
+                          <input type="number" [(ngModel)]="cfg.rows"
+                                 [name]="'rows_' + cfg.seatClass"
+                                 min="0" max="60" />
+                        </div>
+                        <div class="af-field">
+                          <label>Price Multiplier</label>
+                          <input type="number" [(ngModel)]="cfg.priceMultiplier"
+                                 [name]="'mult_' + cfg.seatClass"
+                                 step="0.1" min="1" max="10" />
+                          <span class="af-hint">× base price</span>
+                        </div>
+                      </div>
+
+                      <div class="af-field" style="margin-top: 0.75rem">
+                        <label>Columns</label>
+                        <div class="af-col-toggles">
+                          @for (col of allColumns; track col) {
+                            <button type="button"
+                              class="af-col-btn"
+                              [class.active]="isColSelected(cfg, col)"
+                              (click)="toggleColumn(cfg, col)">
+                              {{ col }}
+                            </button>
+                          }
+                        </div>
+                        <span class="af-hint">A/F = window · C/D = aisle</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Preview -->
+          @if (flight.flightNumber && flight.originAirportCode && flight.destinationAirportCode) {
+            <div class="af-preview">
+              <div class="af-preview-header">Preview</div>
+              <div class="af-preview-body">
+                <div class="af-preview-route">
+                  <span class="af-preview-code">{{ flight.originAirportCode.toUpperCase() }}</span>
+                  <div class="af-preview-line">
+                    <div class="af-preview-dot"></div>
+                    <div class="af-preview-dash"></div>
+                    <span>✈</span>
+                    <div class="af-preview-dash"></div>
+                    <div class="af-preview-dot"></div>
+                  </div>
+                  <span class="af-preview-code">{{ flight.destinationAirportCode.toUpperCase() }}</span>
+                </div>
+                <div class="af-preview-info">
+                  <span>{{ flight.flightNumber.toUpperCase() }}</span>
+                  @if (getDuration()) { <span>{{ getDuration() }}</span> }
+                  @if (flight.basePrice) { <span>₹{{ flight.basePrice }}</span> }
+                  @if (addSeatsEnabled) { <span>{{ getTotalSeatCount() }} seats</span> }
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Actions -->
+          <div class="af-actions">
+            <button type="button" class="af-btn af-btn--ghost" (click)="resetForm()" [disabled]="loading || seedingSeats">
+              Reset Form
+            </button>
+            <button type="submit" class="af-btn af-btn--primary" [disabled]="loading || seedingSeats">
+              @if (loading || seedingSeats) {
+                <span class="af-spinner"></span>
+                {{ seedingSeats ? seatSeedMsg : 'Adding...' }}
+              } @else {
+                <span>✈</span> Add Flight
+              }
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

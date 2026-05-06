@@ -1,0 +1,44 @@
+<nav>
+  <a class="nav-logo" routerLink="/">
+    <span class="logo-icon">✈</span>
+    SkyBooker
+  </a>
+
+  <ul class="nav-links">
+    <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a></li>
+
+    <!-- Passenger-only links -->
+    @if (isPassenger) {
+      <li><a routerLink="/flights" routerLinkActive="active">Flights</a></li>
+      <li><a routerLink="/bookings" routerLinkActive="active">My Bookings</a></li>
+    }
+
+    <!-- Admin-only links -->
+    @if (isAdmin) {
+      <li><a routerLink="/add-flight" routerLinkActive="active">✈ Add Flight</a></li>
+    }
+
+    <!-- Guest links (not logged in) -->
+    @if (!isLoggedIn) {
+      <li><a routerLink="/flights" routerLinkActive="active">Flights</a></li>
+    }
+  </ul>
+
+  <div class="nav-actions">
+    @if (!isLoggedIn) {
+      <button class="btn-outline" routerLink="/login">Log In</button>
+      <button class="btn-nav-primary" routerLink="/register">Sign Up</button>
+    } @else {
+      <div class="nav-user">
+        <span class="nav-role-badge" [class.admin]="isAdmin" [class.passenger]="isPassenger">
+          {{ isAdmin ? '🛠️ Admin' : '🧳 Passenger' }}
+        </span>
+        <button class="btn-outline" (click)="logout()">Log Out</button>
+      </div>
+    }
+  </div>
+
+  <button class="hamburger" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>

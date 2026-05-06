@@ -1,0 +1,133 @@
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge">✈ Book flights in seconds</div>
+    <h1>Your Journey Starts<br/>with <span>SkyBooker</span></h1>
+    <p>Search and compare thousands of flights worldwide. Get the best deals and travel smarter.</p>
+  </div>
+</section>
+
+<!-- Search Card -->
+<section class="container">
+  <div class="search-card animate-fade-in">
+    <div class="trip-type-tabs">
+      <button class="trip-tab" [class.active]="tripType === 'one-way'" (click)="tripType = 'one-way'">One Way</button>
+      <button class="trip-tab" [class.active]="tripType === 'round-trip'" (click)="tripType = 'round-trip'">Round Trip</button>
+      <button class="trip-tab" [class.active]="tripType === 'multi-city'" (click)="tripType = 'multi-city'">Multi-City</button>
+    </div>
+    <div class="search-fields">
+      <div class="field-group">
+        <label>🛫 From</label>
+        <input type="text" placeholder="City or airport" [(ngModel)]="searchForm.from" id="from-input" />
+      </div>
+      <div class="field-group">
+        <label>🛬 To</label>
+        <input type="text" placeholder="City or airport" [(ngModel)]="searchForm.to" id="to-input" />
+      </div>
+      <div class="field-group">
+        <label>📅 Departure</label>
+        <input type="date" [(ngModel)]="searchForm.departure" id="departure-input" />
+      </div>
+
+      @if (!isAdmin) {
+        <div class="field-group">
+          <label>👤 Passengers</label>
+          <select [(ngModel)]="searchForm.passengers" id="passengers-select">
+            @for (n of passengerOptions; track n) {
+              <option [value]="n">{{ n }} {{ n === 1 ? 'Adult' : 'Adults' }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      <button class="search-btn" (click)="searchFlights()" id="search-flights-btn">
+        🔍 Search
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Bar -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item"><div class="stat-num">500+</div><div class="stat-label">Airlines Worldwide</div></div>
+    <div class="stat-item"><div class="stat-num">2M+</div><div class="stat-label">Flights Monthly</div></div>
+    <div class="stat-item"><div class="stat-num">180+</div><div class="stat-label">Countries</div></div>
+    <div class="stat-item"><div class="stat-num">4.9★</div><div class="stat-label">Customer Rating</div></div>
+  </div>
+</div>
+
+<!-- Popular Destinations -->
+<section class="section">
+  <div class="section-header">
+    <div class="eyebrow">🌍 Explore the World</div>
+    <h2>Popular Destinations</h2>
+    <p>Top-rated destinations loved by our travelers around the globe.</p>
+  </div>
+  <div class="destinations-grid">
+    @for (dest of destinations; track dest.city) {
+      <div class="dest-card" (click)="searchTo(dest.code)" [id]="'dest-' + dest.code">
+        <img class="dest-img" [src]="dest.img" [alt]="dest.city" />
+        <div class="dest-overlay">
+          <h3>{{ dest.city }}</h3>
+          <div class="dest-price">From <span>{{ dest.price }}</span></div>
+        </div>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features-section">
+  <div class="section-header">
+    <div class="eyebrow">⚡ Why Choose Us</div>
+    <h2>Everything You Need</h2>
+    <p>A seamless experience from search to boarding.</p>
+  </div>
+  <div class="features-grid">
+    @for (feature of features; track feature.title) {
+      <div class="feature-card">
+        <div class="feature-icon">{{ feature.icon }}</div>
+        <h3>{{ feature.title }}</h3>
+        <p>{{ feature.desc }}</p>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- Hot Deals -->
+<section class="deals-section">
+  <div class="section-header">
+    <div class="eyebrow">🔥 Limited Time</div>
+    <h2>Hot Flight Deals</h2>
+    <p>Grab these incredible offers before they're gone.</p>
+  </div>
+  <div class="deals-grid">
+    @for (deal of deals; track deal.id) {
+      <div class="deal-card" [id]="'deal-' + deal.id" (click)="bookDeal(deal)">
+        <div class="deal-route">
+          <span class="city">{{ deal.from }}</span>
+          <span class="arrow">✈ ─────</span>
+          <span class="city">{{ deal.to }}</span>
+        </div>
+        <div class="deal-airline">{{ deal.airline }} · {{ deal.duration }}</div>
+        <div class="deal-footer">
+          <div class="deal-price">{{ deal.price }}<small>/person</small></div>
+          <div class="deal-badge">{{ deal.discount }} off</div>
+        </div>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Ready to Take Off?</h2>
+  <p>Sign up today and get access to exclusive deals and member-only fares.</p>
+  <button class="cta-btn" routerLink="/register" id="cta-signup-btn">Get Started — It's Free</button>
+</section>

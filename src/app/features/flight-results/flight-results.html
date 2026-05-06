@@ -1,0 +1,153 @@
+<div class="results-page">
+  <!-- Search Bar -->
+  <div class="results-hero">
+    <div class="results-search-bar">
+      <div class="field-group">
+        <label>From</label>
+        <input type="text" [(ngModel)]="filters.from" placeholder="City or airport" />
+      </div>
+      <div class="field-group">
+        <label>To</label>
+        <input type="text" [(ngModel)]="filters.to" placeholder="City or airport" />
+      </div>
+      <div class="field-group">
+        <label>Date</label>
+        <input type="date" [(ngModel)]="filters.date" />
+      </div>
+      @if (!isAdmin) {
+        <div class="field-group">
+          <label>Passengers</label>
+          <select [(ngModel)]="filters.passengers" (change)="applyFilters()">
+            <option [value]="1">1 Adult</option>
+            <option [value]="2">2 Adults</option>
+            <option [value]="3">3 Adults</option>
+            <option [value]="4">4 Adults</option>
+            <option [value]="5">5 Adults</option>
+            <option [value]="6">6 Adults</option>
+            <option [value]="7">7 Adults</option>
+            <option [value]="8">8 Adults</option>
+            <option [value]="9">9 Adults</option>
+          </select>
+        </div>
+      }
+      <button class="search-again-btn" (click)="fetchFlights()">Search</button>
+    </div>
+  </div>
+
+  <div class="results-body">
+    <!-- Filter Panel -->
+    <aside class="filter-panel">
+      <h3>🎛 Filters</h3>
+      <div class="filter-group">
+        <h4>Max Price</h4>
+        <input type="range" min="1000" max="200000" step="500"
+               [(ngModel)]="maxPrice" (input)="applyFilters()" />
+        <div class="price-range-labels">
+          <span>₹1,000</span>
+          <span>₹{{ maxPrice | number }}</span>
+        </div>
+      </div>
+      <div class="filter-group">
+        <h4>Sort by</h4>
+        <select class="sort-select" [(ngModel)]="sortBy" (change)="sortFlights()">
+          <option value="price">Cheapest first</option>
+          <option value="duration">Fastest first</option>
+          <option value="departure">Earliest first</option>
+        </select>
+      </div>
+    </aside>
+
+    <!-- Results -->
+    <div class="results-list">
+      @if (loading) {
+        <div class="no-results">
+          <div class="icon">⏳</div>
+          <p>Searching for flights...</p>
+        </div>
+      }
+
+      @if (errorMsg && !loading) {
+        <div class="no-results">
+          <div class="icon">⚠️</div>
+          <p>{{ errorMsg }}</p>
+        </div>
+      }
+
+      @if (!loading && !errorMsg) {
+        <div class="results-header">
+          <h2>{{ filteredFlights.length }} flights found</h2>
+          @if (!isAdmin && filters.passengers > 1) {
+            <span class="passengers-note">Prices shown for {{ filters.passengers }} passengers</span>
+          }
+        </div>
+      }
+
+      @if (!loading && !errorMsg && filteredFlights.length === 0) {
+        <div class="no-results">
+          <div class="icon">✈️</div>
+          <p>No flights found. Try different dates or cities.</p>
+        </div>
+      }
+
+      @for (flight of filteredFlights; track flight.flightId) {
+        <div class="flight-card" (click)="selectFlight(flight)">
+          <div class="flight-airline">
+            <div class="airline-logo">✈</div>
+            <div class="airline-info">
+              <div class="name">Airline {{ flight.airlineId }}</div>
+              <div class="flight-num">{{ flight.flightNumber }}</div>
+            </div>
+          </div>
+
+          <div class="flight-timing">
+            <div class="time-block">
+              <div class="time">{{ formatTime(flight.departureTime) }}</div>
+              <div class="airport">{{ flight.originAirportCode }}</div>
+            </div>
+            <div class="flight-duration">
+              <div class="duration-line">
+                <div class="line"></div>
+                <span class="plane">✈</span>
+                <div class="line"></div>
+              </div>
+              <div>{{ formatDuration(flight.durationMinutes) }}</div>
+              <div class="stops-badge">Non-Stop</div>
+            </div>
+            <div class="time-block">
+              <div class="time">{{ formatTime(flight.arrivalTime) }}</div>
+              <div class="airport">{{ flight.destinationAirportCode }}</div>
+            </div>
+          </div>
+
+          <div class="flight-price-block">
+            @if (!isAdmin && filters.passengers > 1) {
+              <!-- Show total price when multiple passengers -->
+              <div class="price">₹{{ getTotalPrice(flight.basePrice) | number }}</div>
+              <div class="price-label">for {{ filters.passengers }} passengers</div>
+              <div class="price-per-person">₹{{ flight.basePrice | number }} per person</div>
+            } @else {
+              <div class="price">₹{{ flight.basePrice | number }}</div>
+              <div class="price-label">per person</div>
+            }
+            <div class="seats-left">{{ flight.availableSeats }} seats left</div>
+
+            @if (!isAdmin) {
+              <button class="book-btn"
+                (click)="$event.stopPropagation(); bookFlight(flight)">
+                Book Now
+              </button>
+            }
+
+            @if (isAdmin) {
+              <button class="delete-btn"
+                (click)="deleteFlight($event, flight.flightId)"
+                [disabled]="deletingId === flight.flightId">
+                @if (deletingId === flight.flightId) { Deleting... } @else { 🗑 Delete }
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
