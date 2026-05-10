@@ -14,11 +14,11 @@
 
 export const environment = {
   production: true,
-  authApiUrl:            'https://skybooker-gateway.onrender.com/api',
-  flightApiUrl:          'https://skybooker-gateway.onrender.com/api',
-  bookingApiUrl:         'https://skybooker-gateway.onrender.com/api',
-  paymentApiUrl:         'https://skybooker-gateway.onrender.com/api',
-  passengerServiceUrl:   'https://skybooker-gateway.onrender.com',
-  seatApiUrl:            'https://skybooker-gateway.onrender.com/api',
-  notificationServiceUrl:'https://skybooker-gateway.onrender.com'
+  authApiUrl:             'https://skybooker-gateway.onrender.com/api',
+  flightApiUrl:           'https://skybooker-gateway.onrender.com/api',
+  bookingApiUrl:          'https://skybooker-gateway.onrender.com/api',
+  paymentApiUrl:          'https://skybooker-gateway.onrender.com/api',
+  passengerServiceUrl:    'https://skybooker-gateway.onrender.com/api',
+  seatApiUrl:             'https://skybooker-gateway.onrender.com/api',
+  notificationServiceUrl: 'https://skybooker-gateway.onrender.com/api'
 };
