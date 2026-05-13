@@ -7,6 +7,7 @@ import { PassengerService } from '../../services/passenger.service';
 import { FlightService } from '../../services/flight.service';
 import { SeatService, Seat } from '../../services/seat.service';
 import { NotificationService } from '../../services/notification.service';
+import { PaymentService } from '../../services/payment.service';
 
 interface PassengerForm {
   title: string;
@@ -58,7 +59,7 @@ export class Booking implements OnInit, OnDestroy {
   seatColumns: string[] = [];
   seatsLoading = false;
   seatsError = '';
-  selectedSeat: Seat | null = null;  // ✅ explicit type — fixes 'never' error
+  selectedSeat: Seat | null = null;
   holdingInProgress = false;
   holdError = '';
 
@@ -74,7 +75,8 @@ export class Booking implements OnInit, OnDestroy {
     private passengerService: PassengerService,
     private flightService: FlightService,
     private seatService: SeatService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private paymentService: PaymentService   // ← injected
   ) {}
 
   ngOnInit() {
@@ -297,14 +299,50 @@ export class Booking implements OnInit, OnDestroy {
         let saved = 0;
         passengerSaves.forEach(obs => {
           obs.subscribe({
-            next:  () => { saved++; if (saved === passengerSaves.length) this.finalizeBooking(bookingRes); },
-            error: () => { saved++; if (saved === passengerSaves.length) this.finalizeBooking(bookingRes); }
+            next:  () => { saved++; if (saved === passengerSaves.length) this.processPayment(bookingRes); },
+            error: () => { saved++; if (saved === passengerSaves.length) this.processPayment(bookingRes); }
           });
         });
       },
       error: (err: any) => {
         this.processing = false;
         alert('Booking failed: ' + (err.error?.message || 'Unknown error'));
+      }
+    });
+  }
+
+  // ── Payment Flow ───────────────────────────────────────────────────────────
+  private processPayment(bookingRes: any) {
+    const totalAmount = this.getTotalAmount();
+
+    // Step 1: Initiate payment
+    this.paymentService.initiatePayment({
+      bookingId:   bookingRes.bookingId,
+      userId:      this.userId,
+      amount:      totalAmount,
+      currency:    'INR',
+      paymentMode: 'Card'
+    }).subscribe({
+      next: (paymentRes: any) => {
+        const paymentId = paymentRes.paymentId;
+
+        // Step 2: Simulate success → updates booking status to Confirmed
+        this.paymentService.simulateSuccess(paymentId).subscribe({
+          next: () => {
+            console.log('Payment confirmed, booking status set to Confirmed.');
+            this.finalizeBooking(bookingRes);
+          },
+          error: (err: any) => {
+            console.error('Simulate success failed:', err);
+            // Still finalize — booking exists, payment issue is non-blocking for UI
+            this.finalizeBooking(bookingRes);
+          }
+        });
+      },
+      error: (err: any) => {
+        console.error('Payment initiation failed:', err);
+        // Still finalize — booking exists
+        this.finalizeBooking(bookingRes);
       }
     });
   }
@@ -318,9 +356,8 @@ export class Booking implements OnInit, OnDestroy {
 
     const primaryPassenger = this.passengerForms[0];
 
-    // ✅ capture seat before clearing — fixes 'never' type error
     const confirmedSeat: Seat | null = this.selectedSeat;
-    this.selectedSeat = null; // prevent ngOnDestroy release
+    this.selectedSeat = null;
 
     // Send booking confirmation email with e-ticket PDF
     this.notificationService.sendBookingConfirmation({
